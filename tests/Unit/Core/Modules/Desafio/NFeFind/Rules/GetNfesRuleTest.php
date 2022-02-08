@@ -1,10 +1,7 @@
 <?php
 
-namespace Tests\Unit\Services\Rules;
+namespace Tests\Unit\Core\Modules\Desafio\NFeFind\Rules;
 
-use App\Models\NFe;
-use App\Repositories\NFeInterface;
-use App\Services\Rules\GetNfesRule;
 use Tests\TestCase;
 
 class GetNfesRuleTest extends TestCase

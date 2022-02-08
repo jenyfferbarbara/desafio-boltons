@@ -1,9 +1,7 @@
 <?php
 
-namespace Tests\Unit\Services\Rules;
+namespace Tests\Unit\Core\Modules\Desafio\NFeSync\Rules;
 
-use App\Repositories\NFeInterface;
-use App\Services\Rules\SaveOrUpdateNfeRule;
 use Tests\TestCase;
 
 class SaveOrUpdateNfeRuleTest extends TestCase
@@ -12,7 +10,7 @@ class SaveOrUpdateNfeRuleTest extends TestCase
     {
         $documentos = ['1', '2', '3'];
 
-        $nfeRepositoryMock = $this->createMock(NFeInterface::class);
+        $nfeRepositoryMock = $this->createMock(NFeSaveGateway::class);
         $nfeRepositoryMock->expects(self::once())->method('saveOrUpdate');
 
         $rule = (new SaveOrUpdateNfeRule($nfeRepositoryMock))($documentos);

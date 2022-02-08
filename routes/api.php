@@ -19,6 +19,6 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 
-Route::get('nfe', "NFesController@searchNFe");
+Route::get('nfe', "NFesController@search");
 Route::put('nfe', "NFesController@sync");
 

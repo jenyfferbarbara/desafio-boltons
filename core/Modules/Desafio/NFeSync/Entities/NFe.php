@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Models;
+namespace Core\Modules\Desafio\NFeSync\Entities;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * Entidade NFe.
+ * Entidade Desafio.
  */
 class NFe extends Model
 {

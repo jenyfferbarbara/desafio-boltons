@@ -1,19 +1,15 @@
 <?php
 
-namespace App\Repositories;
+namespace App\Adapters\Modules\Desafio\NFeSync;
 
-use App\Models\NFe;
+use Core\Modules\Desafio\NFeSync\Gateways\NFeSaveGateway;
+use Core\Modules\Desafio\NFeSync\Entities\NFe;
 
 /**
- * Repository para ações da entidade NFe no banco de dados.
+ * Repository para ações de persistência da entidade Desafio no banco de dados.
  */
-class NFeRepository implements NFeInterface
+class NFeSaveAdapter implements NFeSaveGateway
 {
-    public function findByAccessKey(string $accessKey)
-    {
-        return NFe::firstWhere("access_key", $accessKey);
-    }
-
     public function saveOrUpdate(array $documents): void
     {
         foreach($documents as $doc){
@@ -21,7 +17,7 @@ class NFeRepository implements NFeInterface
             $json = json_encode(simplexml_load_string($xml));
             $array = json_decode($json, true);
 
-            $nfe = NFe::updateOrCreate([
+            NFe::updateOrCreate([
                 "access_key" => $doc['access_key'],
                 "price" => $array['NFe']['infNFe']['total']['ICMSTot']['vNF']
             ]);

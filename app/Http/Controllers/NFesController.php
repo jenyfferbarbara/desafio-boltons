@@ -2,33 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\SearchUseCase;
 use Illuminate\Http\Request;
-use App\Repositories\NFeInterface;
-use App\Services\SyncNotesUseCase;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response as HttpCode;
 
 /**
- * Controller para ações da entidade NFe.
+ * Controller para ações da entidade Desafio.
  */
 class NFesController extends Controller
 {
-    private $nfeRepository;
-
-    public function __construct(NFeInterface $nfeRepository)
-    {
-        $this->nfeRepository = $nfeRepository;
-    }
-
-    /**
-     * Retorna a tela principal da funcionalidade.
-     *
-     * @return View
-     */
-    public function index()
-    {
-        return view('index');
-    }
-
     /**
      * Faz integração com endpoint da Arquivei e salva as notas no banco de dados.
      *
@@ -37,12 +19,39 @@ class NFesController extends Controller
      */
     public function sync()
     {
-        $useCase = new SyncNotesUseCase($this->nfeRepository);
-        $useCase->execute();
+        try {
+            $useCase = new \Core\Modules\Desafio\NFeSync\UseCase(
+                new \App\Adapters\Modules\Desafio\NFeSync\NFeSaveAdapter()
+            );
+            $useCase->execute();
 
-        $mensagem = 'Sincronização efetuada com Sucesso.';
+            $mensagem = 'Sincronização efetuada com Sucesso.';
 
-        return view('index',compact('mensagem'));
+            return new JsonResponse([
+                'status' => [
+                    'success' => true,
+                    'code' => HttpCode::HTTP_OK,
+                    'message' => HttpCode::$statusTexts[HttpCode::HTTP_OK],
+                ],
+                'data' => $mensagem
+            ], HttpCode::HTTP_OK);
+        } catch (\DomainException $exception) {
+            return new JsonResponse([
+                'status' => [
+                    'success' => false,
+                    'code' => 4000,
+                    'message' => 'Ocorreu um erro esperado ao sincronizar as notas',
+                ]
+            ], HttpCode::HTTP_FORBIDDEN);
+        } catch (\Throwable $throwable) {
+            return new JsonResponse([
+                'status' => [
+                    'success' => false,
+                    'code' => HttpCode::HTTP_INTERNAL_SERVER_ERROR,
+                    'message' => HttpCode::$statusTexts[HttpCode::HTTP_INTERNAL_SERVER_ERROR],
+                ]
+            ], HttpCode::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 
     /**
@@ -56,20 +65,44 @@ class NFesController extends Controller
      */
     public function search(Request $request)
     {
-        $accessKey = $request->input('search');
+        try {
+            $accessKey = $request->input('access_key');
 
-        $useCase = new SearchUseCase($this->nfeRepository);
-        $nfe = $useCase->execute($accessKey);
+            $useCase = new \Core\Modules\Desafio\NFeFind\UseCase(
+                new \App\Adapters\Modules\Desafio\NFeFind\NFeFinderAdapter()
+            );
+            $nfe = $useCase->execute($accessKey);
 
-        if(isset($nfe))
-        {
-            $result = 'Chave de Acesso: '. $accessKey . ' Valor NFe: ' . $nfe->price;
+            if(isset($nfe)) {
+                $result = 'Chave de Acesso: '. $accessKey . ' Valor: ' . $nfe->price;
+            } else {
+                $result = 'Não encontrada NF-e com chave de Acesso '. $accessKey;
+            }
+
+            return new JsonResponse([
+                'status' => [
+                    'success' => true,
+                    'code' => HttpCode::HTTP_OK,
+                    'message' => HttpCode::$statusTexts[HttpCode::HTTP_OK],
+                ],
+                'data' => $result
+            ], HttpCode::HTTP_OK);
+        } catch (\DomainException $exception) {
+            return new JsonResponse([
+                'status' => [
+                    'success' => false,
+                    'code' => 4000,
+                    'message' => 'Ocorreu um erro esperado ao pesquisar as notas',
+                ]
+            ], HttpCode::HTTP_FORBIDDEN);
+        } catch (\Throwable $throwable) {
+            return new JsonResponse([
+                'status' => [
+                    'success' => false,
+                    'code' => HttpCode::HTTP_INTERNAL_SERVER_ERROR,
+                    'message' => HttpCode::$statusTexts[HttpCode::HTTP_INTERNAL_SERVER_ERROR],
+                ]
+            ], HttpCode::HTTP_INTERNAL_SERVER_ERROR);
         }
-        else
-        {
-            $result = 'Não encontrada NF-e com chave de Acesso '. $accessKey;
-        }
-
-        return view('index',compact('result'));
     }
 }
